@@ -1,0 +1,268 @@
+﻿'use client';
+
+import React, { useState, useEffect, useRef } from 'react';
+import { Moon, Sun } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import {
+  SiHtml5,
+  SiCss3,
+  SiJavascript,
+  SiTypescript,
+  SiReact,
+  SiNextdotjs,
+  SiTailwindcss,
+  SiGit,
+  SiLinkedin,
+  SiGithub,
+  SiInstagram,
+} from "react-icons/si";
+import { FaTwitter } from "react-icons/fa";
+import { RiTelegramLine } from "react-icons/ri";
+
+// Import motion components from our components file
+import { MotionDiv, MotionButton, MotionA, MotionH1, MotionP } from '../components/MotionComponents';
+
+interface HomeProps {}
+
+export default function Home() {
+  const [theme, setTheme] = useState<'light' | 'dark'>('light');
+  const [formError, setFormError] = useState<string | null>(null);
+  const [activeSection, setActiveSection] = useState<string>('home');
+  const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
+  const [formSuccess, setFormSuccess] = useState<boolean>(false);
+  
+  // Refs for sections to use with Intersection Observer
+  const homeRef = useRef<HTMLDivElement>(null);
+  const skillsRef = useRef<HTMLDivElement>(null);
+  const projectsRef = useRef<HTMLDivElement>(null);
+  const contactRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const storedTheme = localStorage.getItem('theme') as 'light' | 'dark';
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    setTheme(storedTheme || (prefersDark ? 'dark' : 'light'));
+    
+    // Apply theme to document
+    document.documentElement.classList.toggle('dark', storedTheme === 'dark' || (!storedTheme && prefersDark));
+  }, []);
+  
+  // Intersection Observer to detect active section
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setActiveSection(entry.target.id);
+          }
+        });
+      },
+      { threshold: 0.3 } // Trigger when 30% of the section is visible
+    );
+    
+    // Observe all section refs
+    const sections = [homeRef, skillsRef, projectsRef, contactRef];
+    sections.forEach(ref => {
+      if (ref.current) observer.observe(ref.current);
+    });
+    
+    return () => {
+      sections.forEach(ref => {
+        if (ref.current) observer.unobserve(ref.current);
+      });
+    };
+  }, []);
+
+  const toggleTheme = () => {
+    const newTheme = theme === 'light' ? 'dark' : 'light';
+    localStorage.setItem('theme', newTheme);
+    setTheme(newTheme);
+  };
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setFormError(null);
+    
+    const form = e.currentTarget;
+    const formData = new FormData(form);
+    const data = Object.fromEntries(formData.entries());
+
+    try {
+      // Validate form data before sending
+      if (!data.name || !data.email || !data.message) {
+        throw new Error('Please fill in all required fields');
+      }
+
+      const response = await fetch('/api/contact', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to send message');
+      }
+
+      // Show success message
+      setFormError('Message sent successfully! Redirecting...');
+      setTimeout(() => {
+        window.location.href = '/thank-you';
+      }, 2000);
+    } catch (error) {
+      console.error('Error:', error);
+      if (error instanceof Error) {
+        if (error.message.includes('Failed to fetch')) {
+          setFormError('Failed to connect to server. Please check your internet connection and try again.');
+        } else if (error.message.includes('Please fill in all required fields')) {
+          setFormError('Please fill in all required fields before submitting.');
+        } else {
+          setFormError(error.message);
+        }
+      } else {
+        setFormError('An unexpected error occurred. Please try again later.');
+      }
+    }
+  };
+
+  const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
+  
+  const scrollToSection = (sectionId: string) => {
+    const section = document.getElementById(sectionId);
+    if (section) {
+      section.scrollIntoView({ behavior: 'smooth' });
+      setIsMenuOpen(false);
+    }
+  };
+  
+  return (
+    <div className="min-h-screen bg-white text-gray-800 dark:bg-[#0f172a] dark:text-white transition-all duration-300">
+      {/* Navigation */}
+      <nav className="fixed top-0 left-0 right-0 z-50 bg-white/90 dark:bg-[#0f172a]/90 backdrop-blur-md border-b border-gray-200 dark:border-gray-800 transition-all duration-300">
+        <div className="max-w-6xl mx-auto px-4 py-4">
+          <div className="flex justify-between items-center">
+            <MotionDiv 
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+              className="text-xl font-bold text-blue-600 dark:text-cyan-400">
+              Kirubel Tadesse
+            </motion.div>
+            
+            {/* Desktop Navigation */}
+            <div className="hidden md:flex items-center space-x-8">
+              {['home', 'skills', 'projects', 'contact'].map((item) => (
+                <motion.a
+                  key={item}
+                  href={`#${item}`}
+                  className={`${activeSection === item ? 'text-blue-500 dark:text-cyan-400' : 'text-gray-600 dark:text-gray-300'} hover:text-blue-500 dark:hover:text-cyan-400 transition-colors capitalize`}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    scrollToSection(item);
+                  }}
+                  whileHover={{ scale: 1.05 }}
+                  transition={{ type: 'spring', stiffness: 400, damping: 10 }}
+                >
+                  {item}
+                </motion.a>
+              ))}
+            </div>
+            
+            {/* Mobile Menu Button */}
+            <button 
+              className="md:hidden focus:outline-none"
+              onClick={toggleMenu}
+              aria-label="Toggle menu"
+            >
+              <svg 
+                xmlns="http://www.w3.org/2000/svg" 
+                fill="none" 
+                viewBox="0 0 24 24" 
+                stroke="currentColor" 
+                className="w-6 h-6"
+              >
+                {isMenuOpen ? (
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                ) : (
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                )}
+              </svg>
+            </button>
+          </div>
+        </div>
+        
+        {/* Mobile Navigation Menu */}
+        <AnimatePresence>
+          {isMenuOpen && (
+            <motion.div 
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.3 }}
+              className="md:hidden bg-white dark:bg-slate-900 py-4 px-4"
+            >
+              <div className="flex flex-col space-y-4">
+                {['home', 'skills', 'projects', 'contact'].map((item) => (
+                  <a
+                    key={item}
+                    href={`#${item}`}
+                    className={`${activeSection === item ? 'text-blue-500 dark:text-cyan-400' : 'text-gray-600 dark:text-gray-300'} hover:text-blue-500 dark:hover:text-cyan-400 transition-colors py-2 capitalize`}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      scrollToSection(item);
+                    }}
+                  >
+                    {item}
+                  </a>
+                ))}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </nav>
+      {/* Toggle Button */}
+      <button
+        onClick={toggleTheme}
+        className="fixed top-4 right-4 p-2 rounded-full bg-white dark:bg-gray-800 shadow-md hover:shadow-lg transition-all"
+      >
+        {theme === 'light' ? <Moon className="w-6 h-6" /> : <Sun className="w-6 h-6" />}
+      </button>
+
+      {/* Hero Section */}
+      <MotionDiv 
+        id="home"
+        ref={homeRef}
+        className="min-h-screen flex items-center bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-[#1e293b] dark:to-[#111a2f] pt-20"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.8 }}
+      >
+        <div className="max-w-6xl mx-auto px-6 py-20 flex flex-col md:flex-row items-center justify-between gap-12">
+          <div>
+            <MotionH1 
+              className="text-5xl md:text-6xl font-bold mb-6"
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.2, duration: 0.8 }}
+            >
+              Hello, I'm <span className="bg-gradient-to-r from-blue-600 to-cyan-500 dark:from-blue-400 dark:to-cyan-300 text-transparent bg-clip-text">Kirubel Tadesse</span>
+            </MotionH1>
+            
+            <MotionP 
+              className="text-xl md:text-2xl text-gray-700 dark:text-gray-300 mb-8 max-w-xl"
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.4, duration: 0.8 }}
+            >
+              A passionate Computer Science graduate who loves crafting modern web experiences with cutting-edge technologies.
+            </MotionP>
+            
+            <MotionDiv
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.6, duration: 0.8 }}
+            >
+              <MotionButton
+                onClick={() => scrollToSection('contact')}
+                className="mt-6 px-8 py-4 t

@@ -1,0 +1,226 @@
+@import "tailwindcss";
+
+@theme inline {
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+/* Light mode styles */
+:root {
+  --background: #ff9d9d;
+  --foreground: #171717;
+}
+
+/* Dark mode styles */
+.dark {
+  --background: #0a0a0a;
+  --foreground: #ededed;
+  background-color: #0a0a0a;
+  color: #ededed;
+}
+
+.dark .bg-white {
+  background-color: #171717;
+}
+
+.dark .bg-gradient-to-r {
+  background-image: linear-gradient(to right, #1e293b, #0f172a);
+}
+
+.dark .text-gray-700 {
+  color: #ededed;
+}
+
+.dark .text-gray-300 {
+  color: #999999;
+}
+
+.dark .text-blue-600 {
+  color: #3b82f6;
+}
+
+.dark .text-cyan-400 {
+  color: #3dd5f3;
+}
+
+/* Section backgrounds */
+.dark section {
+  background-color: #171717;
+}
+
+/* Card backgrounds */
+.dark .bg-white {
+  background-color: #171717;
+  border: 1px solid #2d3748;
+}
+
+/* Hero section */
+.dark .bg-gradient-to-r {
+  background-image: linear-gradient(to right, #1e293b, #0f172a);
+}
+
+/* Skills grid */
+.dark .grid {
+  background-color: #171717;
+}
+
+/* Hero section styles */
+.hero-section {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: 0 1rem;
+}
+
+.hero-section h1 {
+  font-size: 3.5rem;
+  font-weight: 700;
+  line-height: 1.2;
+  margin-bottom: 1.5rem;
+}
+
+.hero-section h1 span {
+  color: #4f46e5;
+}
+
+.hero-section p {
+  font-size: 1.25rem;
+  margin-bottom: 2rem;
+  max-width: 600px;
+}
+
+/* Light mode section backgrounds */
+section {
+  background-color: linear-gradient(to right, #77bce7, #b3a281);
+}
+
+/* Light mode card backgrounds */
+.bg-white {
+  background-color: linear-gradient(to right, #abd2ea, #c8c0af);
+}
+
+/* Light mode hero gradient */
+.bg-gradient-to-r {
+  background-image: linear-gradient(to right, #0a72b4, #b3a281);
+}
+
+/* Contact button styles */
+.contact-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem 1.5rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-radius: 0.5rem;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.contact-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* Light mode contact button */
+.contact-button.light {
+  background: linear-gradient(135deg, #4f46e5 0%, #60a5fa 100%);
+  color: white;
+}
+
+.contact-button.light:hover {
+  background: linear-gradient(135deg, #4338ca 0%, #3b82f6 100%);
+}
+
+/* Dark mode contact button */
+.dark .contact-button {
+  background: linear-gradient(135deg, #60a5fa 0%, #4f46e5 100%);
+  color: white;
+}
+
+.dark .contact-button:hover {
+  background: linear-gradient(135deg, #3b82f6 0%, #4338ca 100%);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
+}
+/* Add these styles to your globals.css */
+.social-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  transition: all 0.3s ease;
+}
+
+.social-icon:hover {
+  transform: translateY(-2px);
+}
+
+/* Navigation styles */
+.navi nav {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: auto;
+  max-width: 90%;
+  border-radius: 50px;
+  padding: 10px 20px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  background: rgba(255, 255, 255, 0.8);
+  z-index: 1000;
+  transition: all 0.3s ease;
+}
+
+.dark .navi nav {
+  background: rgba(15, 23, 42, 0.8);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.navi nav a {
+  position: relative;
+  padding: 8px 16px;
+  font-weight: 500;
+  border-radius: 20px;
+  transition: all 0.3s ease;
+}
+
+.navi nav a:hover {
+  background: rgba(59, 130, 246, 0.1);
+}
+
+.dark .navi nav a:hover {
+  background: rgba(6, 182, 212, 0.1);
+}
+
+.navi nav a::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: 0;
+  height: 2px;
+  background: #3b82f6;
+  transform: translateX(-50%);
+  transition: width 0.3s ease;
+}
+
+.dark .navi nav a::after {
+  background: #06b6d4;
+}
+
+.navi nav a:hover::after {
+  width: 60%;
+}
