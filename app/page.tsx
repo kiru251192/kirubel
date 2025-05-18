@@ -1,4 +1,4 @@
-﻿
+
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
@@ -30,18 +30,31 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faXTwitter } from '@fortawesome/free-brands-svg-icons';
 import { MotionDiv, MotionButton, MotionA, MotionH1, MotionP } from '../components/MotionComponents';
 
+// Determine initial theme on the server (default to 'light')
+const getInitialTheme = () => {
+  if (typeof window === 'undefined') {
+    return 'light'; // Server default
+  }
+  const storedTheme = localStorage.getItem('theme') as 'light' | 'dark' | null;
+  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  return storedTheme || (prefersDark ? 'dark' : 'light');
+};
+
 export default function Home() {
-  const [theme, setTheme] = useState<'light' | 'dark'>('light');
+  const [theme, setTheme] = useState<'light' | 'dark'>(getInitialTheme());
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [formStatus, setFormStatus] = useState<{ message: string; type: 'success' | 'error' | null }>({ message: '', type: null });
   const [isLoading, setIsLoading] = useState(false);
   const [activeSection, setActiveSection] = useState<string>('home');
+  const [isHydrated, setIsHydrated] = useState(false); // Track hydration status
   const homeRef = useRef<HTMLDivElement>(null);
   const skillsRef = useRef<HTMLDivElement>(null);
   const projectsRef = useRef<HTMLDivElement>(null);
   const contactRef = useRef<HTMLDivElement>(null);
 
+  // Set theme after hydration to avoid mismatches
   useEffect(() => {
+    setIsHydrated(true); // Mark as hydrated
     const storedTheme = localStorage.getItem('theme') as 'light' | 'dark' | null;
     const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
     const initialTheme = storedTheme || (prefersDark ? 'dark' : 'light');
@@ -49,7 +62,10 @@ export default function Home() {
     document.documentElement.classList.toggle('dark', initialTheme === 'dark');
   }, []);
 
+  // IntersectionObserver setup after hydration
   useEffect(() => {
+    if (!isHydrated) return; // Skip until hydrated
+
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
@@ -64,7 +80,7 @@ export default function Home() {
     const sections = [homeRef, skillsRef, projectsRef, contactRef];
     sections.forEach((ref) => ref.current && observer.observe(ref.current));
     return () => sections.forEach((ref) => ref.current && observer.unobserve(ref.current));
-  }, []);
+  }, [isHydrated]);
 
   const toggleTheme = () => {
     const newTheme = theme === 'light' ? 'dark' : 'light';
@@ -126,22 +142,22 @@ export default function Home() {
 
   const navItems = ['home', 'skills', 'projects', 'contact'];
   const skills = [
-    { icon: SiHtml5, title: 'HTML5', color: 'hover:text-orange-500' },
-    { icon: SiCss3, title: 'CSS3', color: 'hover:text-blue-500' },
-    { icon: SiJavascript, title: 'JavaScript', color: 'hover:text-yellow-400' },
-    { icon: SiTypescript, title: 'TypeScript', color: 'hover:text-blue-600' },
-    { icon: SiReact, title: 'React', color: 'hover:text-cyan-500' },
-    { icon: SiNextdotjs, title: 'Next.js', color: 'hover:text-black' },
-    { icon: SiTailwindcss, title: 'Tailwind CSS', color: 'hover:text-sky-400' },
-    { icon: SiGit, title: 'Git', color: 'hover:text-red-500' },
-    { icon: SiVuedotjs, title: 'Vue.js', color: 'hover:text-green-500' },
-    { icon: SiPhp, title: 'PHP', color: 'hover:text-purple-600' },
-    { icon: SiMysql, title: 'MySQL', color: 'hover:text-blue-700' },
-    { icon: SiNuxtdotjs, title: 'Nuxt.js', color: 'hover:text-green-600' },
-    { icon: SiLaravel, title: 'Laravel', color: 'hover:text-red-600' },
-    { icon: SiNodedotjs, title: 'Node.js', color: 'hover:text-green-700' },
-    { icon: SiMongodb, title: 'MongoDB', color: 'hover:text-green-800' },
-    { icon: SiDocker, title: 'Docker', color: 'hover:text-blue-800' },
+    { icon: SiHtml5, title: 'HTML5' },
+    { icon: SiCss3, title: 'CSS3' },
+    { icon: SiJavascript, title: 'JavaScript' },
+    { icon: SiTypescript, title: 'TypeScript' },
+    { icon: SiReact, title: 'React' },
+    { icon: SiNextdotjs, title: 'Next.js' },
+    { icon: SiTailwindcss, title: 'Tailwind CSS' },
+    { icon: SiGit, title: 'Git' },
+    { icon: SiVuedotjs, title: 'Vue.js' },
+    { icon: SiPhp, title: 'PHP' },
+    { icon: SiMysql, title: 'MySQL' },
+    { icon: SiNuxtdotjs, title: 'Nuxt.js' },
+    { icon: SiLaravel, title: 'Laravel' },
+    { icon: SiNodedotjs, title: 'Node.js' },
+    { icon: SiMongodb, title: 'MongoDB' },
+    { icon: SiDocker, title: 'Docker' },
   ];
   const projects = [
     {
@@ -179,8 +195,13 @@ export default function Home() {
     { href: 'https://t.me/dropthed', icon: RiTelegramLine, color: 'hover:text-blue-500', label: 'Telegram' },
   ];
 
+  // Render nothing until hydrated to avoid mismatches
+  if (!isHydrated) {
+    return null;
+  }
+
   return (
-    <div className="min-h-screen bg-white text-gray-800 dark:bg-[#0f172a] dark:text-white transition-all duration-300">
+    <div className="min-h-screen bg-[var(--background)] text-[var(--foreground)] transition-all duration-300">
       {/* Navigation */}
       <nav className="fixed bottom-4 left-0 right-0 z-50 flex justify-center pointer-events-none">
         <MotionDiv
@@ -191,7 +212,7 @@ export default function Home() {
         >
           <div className="flex items-center justify-between md:justify-center md:space-x-6">
             <MotionDiv
-              className="text-lg font-bold bg-gradient-to-r from-blue-600 to-cyan-500 dark:from-blue-400 dark:to-cyan-300 text-transparent bg-clip-text md:hidden"
+              className="text-lg font-bold bg-gradient-to-r from-[#4f46e5] to-[#60a5fa] dark:from-[#3b82f6] dark:to-[#3dd5f3] text-transparent bg-clip-text md:hidden"
               whileHover={{ scale: 1.05 }}
             >
               KT
@@ -203,8 +224,8 @@ export default function Home() {
                   href={`#${item}`}
                   className={`relative px-3 py-2 text-sm font-medium transition-all duration-300 ${
                     activeSection === item
-                      ? 'text-blue-600 dark:text-cyan-400 after:absolute after:bottom-0 after:left-0 after:w-full after:h-0.5 after:bg-gradient-to-r after:from-blue-600 after:to-cyan-500 dark:after:from-blue-400 dark:after:to-cyan-300'
-                      : 'text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-cyan-400'
+                      ? 'text-[#4f46e5] dark:text-[#3dd5f3] after:absolute after:bottom-0 after:left-0 after:w-full after:h-0.5 after:bg-gradient-to-r after:from-[#4f46e5] after:to-[#60a5fa] dark:after:from-[#3b82f6] dark:after:to-[#3dd5f3]'
+                      : 'text-[var(--foreground)] hover:text-[#4f46e5] dark:hover:text-[#3dd5f3]'
                   } rounded-md capitalize`}
                   onClick={(e) => {
                     e.preventDefault();
@@ -218,11 +239,11 @@ export default function Home() {
               ))}
             </div>
             <button
-              className={`md:hidden p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors hamburger ${isMenuOpen ? 'open' : ''} pointer-events-auto`}
+              className={`md:hidden p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-[#171717] transition-colors hamburger ${isMenuOpen ? 'open' : ''} pointer-events-auto`}
               onClick={toggleMenu}
               aria-label="Toggle menu"
             >
-              <svg className="w-6 h-6 text-gray-600 dark:text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg className="w-6 h-6 text-[var(--foreground)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16" />
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 12h16" />
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 18h16" />
@@ -241,7 +262,7 @@ export default function Home() {
               onClick={toggleMenu}
             >
               <motion.div
-                className="bg-white/95 dark:bg-[#0f172a]/95 backdrop-blur-xl max-w-sm w-full mx-4 p-6 rounded-2xl shadow-xl mb-4"
+                className="bg-white/95 dark:bg-[#171717]/95 backdrop-blur-xl max-w-sm w-full mx-4 p-6 rounded-2xl shadow-xl mb-4"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: 20 }}
@@ -255,8 +276,8 @@ export default function Home() {
                       href={`#${item}`}
                       className={`block py-2 px-4 text-sm font-medium rounded-md transition-colors ${
                         activeSection === item
-                          ? 'text-blue-600 dark:text-cyan-400 bg-blue-50 dark:bg-cyan-900/30'
-                          : 'text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-cyan-400 hover:bg-gray-100 dark:hover:bg-gray-700'
+                          ? 'text-[#4f46e5] dark:text-[#3dd5f3] bg-[#abd2ea]/30 dark:bg-[#3dd5f3]/30'
+                          : 'text-[var(--foreground)] hover:text-[#4f46e5] dark:hover:text-[#3dd5f3] hover:bg-gray-100 dark:hover:bg-[#171717]'
                       } capitalize`}
                       onClick={(e) => {
                         e.preventDefault();
@@ -276,17 +297,17 @@ export default function Home() {
       {/* Theme Toggle */}
       <button
         onClick={toggleTheme}
-        className="fixed top-4 right-4 p-2 rounded-full bg-white dark:bg-gray-800 shadow-md hover:shadow-lg transition-all z-50"
+        className="fixed top-4 right-4 p-2 rounded-full bg-white dark:bg-[#171717] shadow-md hover:shadow-lg transition-all z-50"
         aria-label="Toggle theme"
       >
-        {theme === 'light' ? <Moon className="w-6 h-6" /> : <Sun className="w-6 h-6" />}
+        {theme === 'light' ? <Moon className="w-6 h-6 text-[var(--foreground)]" /> : <Sun className="w-6 h-6 text-[var(--foreground)]" />}
       </button>
 
       {/* Hero Section */}
       <MotionDiv
         id="home"
         ref={homeRef}
-        className="min-h-screen flex items-center bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-[#1e293b] dark:to-[#111a2f] pt-20"
+        className="hero-section bg-gradient-to-r pt-20"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.8 }}
@@ -300,12 +321,12 @@ export default function Home() {
               transition={{ delay: 0.2 }}
             >
               Hello, I'm{' '}
-              <span className="bg-gradient-to-r from-blue-600 to-cyan-500 dark:from-blue-400 dark:to-cyan-300 text-transparent bg-clip-text">
+              <span className="bg-gradient-to-r from-[#4f46e5] to-[#60a5fa] dark:from-[#3b82f6] dark:to-[#3dd5f3] text-transparent bg-clip-text">
                 Kirubel Tadesse
               </span>
             </MotionH1>
             <MotionP
-              className="text-lg md:text-xl text-gray-700 dark:text-gray-300 mb-8 max-w-xl"
+              className="text-lg md:text-xl text-[var(--foreground)] mb-8 max-w-xl"
               initial={{ y: 20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 0.4 }}
@@ -314,7 +335,7 @@ export default function Home() {
             </MotionP>
             <MotionButton
               onClick={() => scrollToSection('contact')}
-              className="px-8 py-4 text-lg font-semibold bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white rounded-full shadow-lg hover:shadow-xl"
+              className="contact-button light dark:contact-button px-8 py-4 text-lg font-semibold rounded-full shadow-lg hover:shadow-xl"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
@@ -322,7 +343,7 @@ export default function Home() {
             </MotionButton>
           </div>
           <MotionDiv
-            className="w-64 h-64 md:w-80 md:h-80 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-full mx-auto overflow-hidden shadow-2xl"
+            className="w-64 h-64 md:w-80 md:h-80 bg-gradient-to-br from-[#4f46e5] to-[#60a5fa] dark:from-[#3b82f6] dark:to-[#3dd5f3] rounded-full mx-auto overflow-hidden shadow-2xl"
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.6 }}
@@ -336,16 +357,29 @@ export default function Home() {
       <MotionDiv
         id="skills"
         ref={skillsRef}
-        className="py-20 px-6 max-w-5xl mx-auto"
+        className="skills-section py-20 px-6 max-w-full mx-auto overflow-hidden"
         initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
         viewport={{ once: true }}
       >
         <h2 className="text-3xl font-bold mb-6 text-center">Skills</h2>
-        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-6 justify-items-center text-4xl text-gray-700 dark:text-gray-300">
-          {skills.map(({ icon: Icon, title, color }) => (
-            <Icon key={title} title={title} className={`${color} transition`} />
+        <div className="flex flex-row items-center whitespace-nowrap marquee">
+          {/* First set of icons */}
+          {skills.map(({ icon: Icon, title }) => (
+            <Icon
+              key={`${title}-1`}
+              title={title}
+              className="text-4xl sm:text-3xl hover:text-[#4f46e5] dark:hover:text-[#3dd5f3] transition mx-3 sm:mx-2"
+            />
+          ))}
+          {/* Second set for seamless loop */}
+          {skills.map(({ icon: Icon, title }) => (
+            <Icon
+              key={`${title}-2`}
+              title={title}
+              className="text-4xl sm:text-3xl hover:text-[#4f46e5] dark:hover:text-[#3dd5f3] transition mx-3 sm:mx-2"
+            />
           ))}
         </div>
       </MotionDiv>
@@ -361,7 +395,7 @@ export default function Home() {
         viewport={{ once: true }}
       >
         <h2 className="text-4xl font-bold mb-12 text-center">
-          <span className="bg-gradient-to-r from-blue-600 to-cyan-500 dark:from-blue-400 dark:to-cyan-300 text-transparent bg-clip-text">
+          <span className="bg-gradient-to-r from-[#4f46e5] to-[#60a5fa] dark:from-[#3b82f6] dark:to-[#3dd5f3] text-transparent bg-clip-text">
             Featured Projects
           </span>
         </h2>
@@ -369,7 +403,7 @@ export default function Home() {
           {projects.map((project, index) => (
             <motion.div
               key={project.title}
-              className="bg-white/70 dark:bg-slate-800/70 rounded-2xl shadow-xl border border-gray-100 dark:border-gray-700 overflow-hidden group"
+              className="bg-white rounded-2xl shadow-xl border border-gray-100 dark:border-[#2d3748] overflow-hidden group"
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: index * 0.1 }}
@@ -385,7 +419,7 @@ export default function Home() {
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-6">
                   <div className="flex flex-wrap gap-2">
                     {project.tags.map((tag) => (
-                      <span key={tag} className="text-xs font-medium px-2 py-1 rounded-full bg-blue-600/80 text-white">
+                      <span key={tag} className="text-xs font-medium px-2 py-1 rounded-full bg-[#4f46e5]/80 dark:bg-[#3b82f6]/80 text-white">
                         {tag}
                       </span>
                     ))}
@@ -393,20 +427,20 @@ export default function Home() {
                 </div>
               </div>
               <div className="p-6">
-                <h3 className="text-xl font-semibold mb-3 text-gray-800 dark:text-white">{project.title}</h3>
-                <p className="text-gray-600 dark:text-gray-300 mb-5 line-clamp-3">{project.description}</p>
+                <h3 className="text-xl font-semibold mb-3 text-[var(--foreground)]">{project.title}</h3>
+                <p className="text-[var(--foreground)] mb-5 line-clamp-3">{project.description}</p>
                 <div className="flex justify-between items-center">
                   <MotionA
                     href={project.repoUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center text-blue-600 dark:text-cyan-400 font-medium hover:underline"
+                    className="inline-flex items-center text-[#4f46e5] dark:text-[#3dd5f3] font-medium hover:underline"
                     whileHover={{ x: 5 }}
                   >
                     View Code <span className="ml-1">→</span>
                   </MotionA>
                   <MotionButton
-                    className="p-2 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300"
+                    className="p-2 rounded-full bg-gray-100 dark:bg-[#171717] text-[var(--foreground)]"
                     whileHover={{ scale: 1.1, rotate: 5 }}
                     whileTap={{ scale: 0.9 }}
                     aria-label="Like project"
@@ -431,7 +465,7 @@ export default function Home() {
       <MotionDiv
         id="contact"
         ref={contactRef}
-        className="bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-[#1e293b] dark:to-[#0f172a] py-24 px-6"
+        className="bg-gradient-to-r py-24 px-6"
         initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
@@ -439,23 +473,23 @@ export default function Home() {
       >
         <div className="max-w-5xl mx-auto">
           <h2 className="text-4xl font-bold mb-4 text-center">
-            <span className="bg-gradient-to-r from-blue-600 to-cyan-500 dark:from-blue-400 dark:to-cyan-300 text-transparent bg-clip-text">
+            <span className="bg-gradient-to-r from-[#4f46e5] to-[#60a5fa] dark:from-[#3b82f6] dark:to-[#3dd5f3] text-transparent bg-clip-text">
               Get in Touch
             </span>
           </h2>
-          <p className="text-gray-700 dark:text-gray-300 mb-12 text-center max-w-2xl mx-auto">
+          <p className="text-[var(--foreground)] mb-12 text-center max-w-2xl mx-auto">
             Feel free to reach out for collaboration, projects, or just to connect!
           </p>
           <div className="grid md:grid-cols-5 gap-12 items-start">
             {/* Contact Form */}
             <MotionDiv
-              className="md:col-span-3 bg-white/80 dark:bg-slate-800/80 backdrop-blur-md rounded-2xl p-8 shadow-xl border border-gray-100 dark:border-gray-700"
+              className="md:col-span-3 bg-white rounded-2xl p-8 shadow-xl border border-gray-100 dark:border-[#2d3748]"
               initial={{ opacity: 0, x: -30 }}
               whileInView={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.5, delay: 0.2 }}
               viewport={{ once: true }}
             >
-              <h3 className="text-xl font-semibold mb-6 text-gray-800 dark:text-white">Send Me a Message</h3>
+              <h3 className="text-xl font-semibold mb-6 text-[var(--foreground)]">Send Me a Message</h3>
               <form onSubmit={handleSubmit} className="space-y-6">
                 {formStatus.message && (
                   <MotionDiv
@@ -473,7 +507,7 @@ export default function Home() {
                 )}
                 <div className="space-y-4">
                   <div>
-                    <label htmlFor="name" className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
+                    <label htmlFor="name" className="block text-sm font-medium mb-1 text-[var(--foreground)]">
                       Your Name
                     </label>
                     <input
@@ -481,12 +515,12 @@ export default function Home() {
                       id="name"
                       name="name"
                       required
-                      className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-slate-700/70 dark:border-gray-600 dark:text-white transition-all duration-200"
+                      className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-[#4f46e5] focus:border-[#4f46e5] dark:bg-[#171717] dark:border-[#2d3748] dark:text-[var(--foreground)] transition-all duration-200"
                       placeholder="Your Name"
                     />
                   </div>
                   <div>
-                    <label htmlFor="email" className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
+                    <label htmlFor="email" className="block text-sm font-medium mb-1 text-[var(--foreground)]">
                       Email Address
                     </label>
                     <input
@@ -494,12 +528,12 @@ export default function Home() {
                       id="email"
                       name="email"
                       required
-                      className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-slate-700/70 dark:border-gray-600 dark:text-white transition-all duration-200"
+                      className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-[#4f46e5] focus:border-[#4f46e5] dark:bg-[#171717] dark:border-[#2d3748] dark:text-[var(--foreground)] transition-all duration-200"
                       placeholder="your@email.com"
                     />
                   </div>
                   <div>
-                    <label htmlFor="message" className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
+                    <label htmlFor="message" className="block text-sm font-medium mb-1 text-[var(--foreground)]">
                       Message
                     </label>
                     <textarea
@@ -507,14 +541,14 @@ export default function Home() {
                       name="message"
                       required
                       rows={5}
-                      className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-slate-700/70 dark:border-gray-600 dark:text-white transition-all duration-200"
+                      className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-[#4f46e5] focus:border-[#4f46e5] dark:bg-[#171717] dark:border-[#2d3748] dark:text-[var(--foreground)] transition-all duration-200"
                       placeholder="Write your message here..."
                     ></textarea>
                   </div>
                 </div>
                 <MotionButton
                   type="submit"
-                  className="w-full md:w-auto px-8 py-3 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white rounded-full shadow-lg hover:shadow-xl transition-all"
+                  className="w-full md:w-auto contact-button light dark:contact-button px-8 py-3 rounded-full shadow-lg hover:shadow-xl transition-all"
                   whileHover={{ scale: 1.03 }}
                   whileTap={{ scale: 0.98 }}
                   disabled={isLoading}
@@ -532,11 +566,11 @@ export default function Home() {
               transition={{ duration: 0.5, delay: 0.4 }}
               viewport={{ once: true }}
             >
-              <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-md rounded-2xl p-6 shadow-xl border border-gray-100 dark:border-gray-700">
-                <h3 className="text-xl font-semibold mb-6 text-gray-800 dark:text-white">Connect With Me</h3>
+              <div className="bg-white rounded-2xl p-6 shadow-xl border border-gray-100 dark:border-[#2d3748]">
+                <h3 className="text-xl font-semibold mb-6 text-[var(--foreground)]">Connect With Me</h3>
                 <div className="space-y-4">
                   <div className="flex items-center space-x-3">
-                    <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-full text-blue-600 dark:text-blue-400">
+                    <div className="p-2 bg-[#abd2ea]/50 dark:bg-[#3dd5f3]/30 rounded-full text-[#4f46e5] dark:text-[#3dd5f3]">
                       <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path
                           strokeLinecap="round"
@@ -546,10 +580,10 @@ export default function Home() {
                         />
                       </svg>
                     </div>
-                    <span className="text-gray-700 dark:text-gray-300">kirubel.tadesse@example.com</span>
+                    <span className="text-[var(--foreground)]">kirubel.tadesse@example.com</span>
                   </div>
                   <div className="flex items-center space-x-3">
-                    <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-full text-green-600 dark:text-green-400">
+                    <div className="p-2 bg-[#abd2ea]/50 dark:bg-[#3dd5f3]/30 rounded-full text-[#4f46e5] dark:text-[#3dd5f3]">
                       <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path
                           strokeLinecap="round"
@@ -560,11 +594,11 @@ export default function Home() {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                       </svg>
                     </div>
-                    <span className="text-gray-700 dark:text-gray-300">Addis Ababa, Ethiopia</span>
+                    <span className="text-[var(--foreground)]">Addis Ababa, Ethiopia</span>
                   </div>
                 </div>
                 <div className="mt-8">
-                  <h4 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-4">FIND ME ON</h4>
+                  <h4 className="text-sm font-medium text-[var(--foreground)]/70 mb-4">FIND ME ON</h4>
                   <div className="flex flex-wrap gap-4">
                     {socialLinks.map(({ href, icon: Icon, color, label }) => (
                       <MotionA
@@ -572,7 +606,7 @@ export default function Home() {
                         href={href}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className={`p-3 bg-gray-100 dark:bg-gray-700 rounded-full text-gray-600 ${color} dark:text-gray-300 transition-colors`}
+                        className={`social-icon p-3 bg-gray-100 dark:bg-[#171717] text-[var(--foreground)] ${color} transition-colors`}
                         whileHover={{ y: -5 }}
                         whileTap={{ scale: 0.95 }}
                         aria-label={label}
@@ -583,11 +617,11 @@ export default function Home() {
                   </div>
                 </div>
               </div>
-              <div className="bg-blue-600/10 dark:bg-blue-400/10 backdrop-blur-md rounded-2xl p-6 shadow-xl border border-blue-100 dark:border-blue-900/20">
-                <h3 className="text-blue-600 dark:text-blue-400 font-medium mb-3">Looking for a Developer?</h3>
-                <p className="text-gray-700 dark:text-gray-300 mb-4">I'm available for freelance or full-time positions.</p>
+              <div className="bg-[#abd2ea]/10 dark:bg-[#3dd5f3]/10 rounded-2xl p-6 shadow-xl border border-[#abd2ea]/20 dark:border-[#3dd5f3]/20">
+                <h3 className="text-[#4f46e5] dark:text-[#3dd5f3] font-medium mb-3">Looking for a Developer?</h3>
+                <p className="text-[var(--foreground)] mb-4">I'm available for freelance or full-time positions.</p>
                 <MotionButton
-                  className="inline-flex items-center text-blue-600 dark:text-blue-400 font-medium"
+                  className="inline-flex items-center text-[#4f46e5] dark:text-[#3dd5f3] font-medium"
                   whileHover={{ x: 5 }}
                   onClick={() => scrollToSection('home')}
                 >
@@ -598,7 +632,7 @@ export default function Home() {
           </div>
           {/* Footer */}
           <MotionDiv
-            className="mt-20 pt-8 border-t border-gray-200 dark:border-gray-800 text-center text-sm text-gray-500 dark:text-gray-400"
+            className="mt-20 pt-8 border-t border-gray-200 dark:border-[#2d3748] text-center text-sm text-[var(--foreground)]"
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
             transition={{ duration: 0.5, delay: 0.6 }}
@@ -613,7 +647,7 @@ export default function Home() {
                   href={href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className={`text-gray-500 ${color} dark:text-gray-400 transition-colors`}
+                  className={`text-[var(--foreground)] ${color} transition-colors`}
                   whileHover={{ y: -3 }}
                   aria-label={label}
                 >
